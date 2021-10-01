@@ -1,4 +1,7 @@
 // pages/signature/signature.js
+// 绘制的历史记录,用于撤销操作
+var allDrawWorksPath = [];
+
 Page({
 
   /**
@@ -22,7 +25,6 @@ Page({
     currentPoint: {},
     currentLine: [],  // 当前线条
     firstTouch: true, // 第一次触发
-    bethelPoint: [],  //保存所有线条 生成的贝塞尔点；
     lastPoint: 0,
     chirography: [], //笔迹
     currentChirography: {}, //当前笔迹
@@ -34,6 +36,7 @@ Page({
 
   // 笔迹开始
   uploadScaleStart(e) {
+    this.saveCurrentDrawWorks();
     if (e.type != 'touchstart') return false;
     let ctx = this.data.ctx;
     ctx.fillStyle = this.data.lineColor;      // 初始线条设置颜色
@@ -127,34 +130,33 @@ Page({
       currentPoint: point
     })
     let currentLine = this.data.currentLine
-    currentLine.unshift({
-      time: new Date().getTime(),
-      dis: this.distance(this.data.currentPoint, this.data.lastPoint),
-      x: point.x,
-      y: point.y
-    })
+    // currentLine.unshift({
+    //   time: new Date().getTime(),
+    //   dis: this.distance(this.data.currentPoint, this.data.lastPoint),
+    //   x: point.x,
+    //   y: point.y
+    // })
     // if (currentLine.length > 2) {
     //   var info = (currentLine[0].time - currentLine[currentLine.length - 1].time) / currentLine.length;
     // }
     //一笔结束，保存笔迹的坐标点，清空，当前笔迹
     //增加判断是否在手写区域；
     this.pointToLine(currentLine);
-    var currentChirography = {
-      lineSize: this.data.lineSize,
-      lineColor: this.data.lineColor
-    };
-    var chirography = this.data.chirography
-    chirography.unshift(currentChirography);
+    // var currentChirography = {
+    //   lineSize: this.data.lineSize,
+    //   lineColor: this.data.lineColor
+    // };
+    // var chirography = this.data.chirography
+    // chirography.unshift(currentChirography);
+    // this.setData({
+    //   chirography
+    // })
+    // var linePrack = this.data.linePrack
+    // linePrack.unshift(this.data.currentLine);
     this.setData({
-      chirography
-    })
-    var linePrack = this.data.linePrack
-    linePrack.unshift(this.data.currentLine);
-
-    this.setData({
-      linePrack,
+      // linePrack,
       currentLine: []
-    })
+    });
   },
 
   //画两点之间的线条；参数为:line，会绘制最近的开始的两个点；
@@ -174,8 +176,6 @@ Page({
       y0 = line[1].y
       x2 = line[1].x + (line[0].x - line[1].x) * curveValue;
       y2 = line[1].y + (line[0].y - line[1].y) * curveValue;
-      //x2 = line[1].x;
-      //y2 = line[1].y;
       x1 = x0 + (x2 - x0) * curveValue;
       y1 = y0 + (y2 - y0) * curveValue;;
 
@@ -221,10 +221,6 @@ Page({
       if (point.length == 3) {
         let a = this.ctaCalc(point[0].x, point[0].y, point[0].r, point[1].x, point[1].y, point[1].r, point[2].x, point[2].y, point[2].r);
         a[0].color = this.data.lineColor;
-        // let bethelPoint = this.data.bethelPoint;
-        // console.log(a)
-        // console.log(this.data.bethelPoint)
-        // bethelPoint = bethelPoint.push(a);
         this.bethelDraw(a, 1);
         point = [{ x: x, y: y, r: r }];
       }
@@ -314,6 +310,7 @@ Page({
     var { canvasWidth, canvasHeight } = this.data
     //清除画布
     this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    allDrawWorksPath = [];
     this.setData(
       {
         currentPoint: {},
@@ -323,43 +320,68 @@ Page({
         lastPoint: 0,
         chirography: [], //笔迹
         currentChirography: {}, //当前笔迹
-        linePrack: [] //划线轨迹 , 生成线条的实际点
+        linePrack: [], //划线轨迹 , 生成线条的实际点
       }
     );
     //设置canvas背景
     this.setCanvasBg("#fff");
   },
 
+  // 老的撤销方式, 采用重新绘制的方法
+  // undoCanvasLineOld() {
+  //   let linePrack = this.data.linePrack;
+  //   var chirography = this.data.chirography
+  //   linePrack.shift();
+  //   chirography.shift();
+  //   var { canvasWidth, canvasHeight } = this.data
+  //   this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  //   linePrack.forEach((currentLines, index) => {
+  //     // console.log(currentLines);
+  //     let currentChirography = chirography[index];
+  //     this.setData({
+  //       lineSize: currentChirography.lineSize,
+  //       lineColor: currentChirography.lineColor,
+  //     })
+  //     for (let index = 0; index < currentLines.length; index++) {
+  //       let currentLine = currentLines.slice(currentLines.length - index - 1);
+  //       //一笔结束，保存笔迹的坐标点，清空，当前笔迹
+  //       // console.log(currentLine);
+  //       //增加判断是否在手写区域；
+  //       this.pointToLine(currentLine);
+  //     }
+  //   });
+  //   this.setData({
+  //     currentLine: []
+  //   })
+  // },
+
+  // 使用绘制图片的方式, 每次把上一次的图片缓存起来, 这样节省了绘制时间,只需要绘制一张图片就行
   undoCanvasLine() {
-    let linePrack = this.data.linePrack;
-    var chirography = this.data.chirography
-    linePrack.shift();
-    chirography.shift();
     var { canvasWidth, canvasHeight } = this.data
-    this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    linePrack.forEach((currentLines, index) => {
-      // console.log(currentLines);
-      let currentChirography = chirography[index];
-      this.setData({
-        lineSize: currentChirography.lineSize,
-        lineColor: currentChirography.lineColor,
-      })
-      for (let index = 0; index < currentLines.length; index++) {
-        let currentLine = currentLines.slice(currentLines.length - index - 1);
-        //一笔结束，保存笔迹的坐标点，清空，当前笔迹
-        // console.log(currentLine);
-        //增加判断是否在手写区域；
-        this.pointToLine(currentLine);
-      }
-    });
-    this.setData({
-      currentLine: []
-    })
+    var drawWorksPath = allDrawWorksPath.pop();
+    if (drawWorksPath) {
+      let img = this.data.canvas.createImage(canvasWidth, canvasHeight);//创建img对象
+      img.src = drawWorksPath;
+      img.onload = () => {
+        // img.complete表示图片是否加载完成，结果返回true和false;
+        // console.log(img.complete);//true
+        // 使用屏幕像素比, 确保图片尺寸正确
+        let pixelRatio = this.data.pixelRatio;
+        if (img.complete) {
+          this.data.ctx.drawImage(img, 0, 0, canvasWidth / pixelRatio, canvasHeight / pixelRatio);
+        }
+      };
+    }
+
+    if (allDrawWorksPath.length == 0) {
+      this.retDraw();
+    }
   },
 
   //完成
   subCanvas() {
-    console.log(this.data)
+    console.log(this.data);
+    console.log(allDrawWorksPath.length);
   },
 
   //保存到相册
@@ -391,6 +413,11 @@ Page({
     })
   },
 
+  saveCurrentDrawWorks() {
+    let url = this.data.canvas.toDataURL();
+    allDrawWorksPath.push(url);
+  },
+
   //预览
   previewCanvasImg() {
     wx.canvasToTempFilePath({
@@ -398,7 +425,7 @@ Page({
       fileType: 'jpg',
       quality: 1, //图片质量
       success(res) {
-        // console.log(res.tempFilePath, 'canvas生成图片地址');
+        console.log(res.tempFilePath, 'canvas生成图片地址');
         wx.previewImage({
           urls: [res.tempFilePath], //预览图片 数组
         })
@@ -427,25 +454,12 @@ Page({
     })
   },
 
-  //设置canvas背景色  不设置  导出的canvas的背景为透明 
-  //@params：字符串  color
-  setCanvasBg(color) {
-    console.log('设置背景与填充色');
-    /* 将canvas背景设置为 白底，不设置  导出的canvas的背景为透明 */
-    //rect() 参数说明  矩形路径左上角的横坐标，左上角的纵坐标, 矩形路径的宽度, 矩形路径的高度
-    //这里是 canvasHeight - 4 是因为下边盖住边框了，所以手动减了写
-    this.data.ctx.rect(0, 0, this.data.canvasWidth, this.data.canvasHeight - 4);
-    this.data.ctx.fillStyle = color;
-    this.data.ctx.fill()  //设置填充
-  },
-
   /*======所有自定义函数=END=====*/
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-
     // 通过 SelectorQuery 获取 Canvas 节点
     wx.createSelectorQuery()
       .select('#handWriting')
@@ -482,19 +496,29 @@ Page({
     // 填充颜色
     content.strokeStyle = '#1aad19'
 
+    let pixelRatio = wx.getSystemInfoSync().pixelRatio;
+
     this.setData({
       canvas: canvas,
       ctx: content,
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
       lineColor: '#1A1A1A',
+      pixelRatio: pixelRatio,
     })
     //设置canvas背景
     this.setCanvasBg("#fff");
   },
 
-  // 画布的触摸取消响应
-  cancel(e) {
-    console.log("触摸取消" + e);
+  //设置canvas背景色  不设置  导出的canvas的背景为透明 
+  //@params：字符串  color
+  setCanvasBg(color) {
+    // console.log('设置背景与填充色');
+    /* 将canvas背景设置为 白底，不设置  导出的canvas的背景为透明 */
+    //rect() 参数说明  矩形路径左上角的横坐标，左上角的纵坐标, 矩形路径的宽度, 矩形路径的高度
+    //这里是 canvasHeight - 4 是因为下边盖住边框了，所以手动减了写
+    this.data.ctx.rect(0, 0, this.data.canvasWidth, this.data.canvasHeight - 4);
+    this.data.ctx.fillStyle = color;
+    this.data.ctx.fill()  //设置填充
   },
 })

@@ -20,7 +20,7 @@
   </view>
   <view class="handCenter">
     <canvas type="2d" id="handWriting" class="handWriting" disable-scroll="true" bindtouchstart="uploadScaleStart"
-      bindtouchmove="uploadScaleMove" bindtouchend="uploadScaleEnd" bindtouchcancel="cancel" bindtap="mouseDown">
+      bindtouchmove="uploadScaleMove" bindtouchend="uploadScaleEnd" bindtap="mouseDown">
     </canvas>
   </view>
   <view class="handRight">
