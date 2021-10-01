@@ -1,7 +1,7 @@
 
 wechat-signature
 
-### 转载：[查看原版](https://github.com/momtboy/handwriting-weapp) https://github.com/momtboy/handwriting-weapp
+### 转载：[查看原版](https://github.com/Kayakyx/wechat-signature) https://github.com/Kayakyx/wechat-signature
 
 微信小程序Canvas手写板(use canvas in weapp for user signature)
 
@@ -13,6 +13,8 @@ wechat-signature
 
 优化setData过于频繁照成的渲染延迟.
 
+优化频繁绘制后有点卡顿的问题(重写绘制时, 没有把原绘制的数据清空导致)
+
 增加笔迹样式.
 
-#### 在源代码中 添加 保存、预览、上传等
+#### 在源代码中 添加 保存、预览、等

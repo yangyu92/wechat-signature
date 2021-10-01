@@ -1,9 +1,9 @@
 // pages/signature/signature.js
 Page({
 
-	/**
-	 * 页面的初始数据
-	 */
+  /**
+   * 页面的初始数据
+   */
   data: {
     canvasName: 'handWriting',
     ctx: '',
@@ -13,20 +13,21 @@ Page({
     selectColor: 'black',
     lineColor: '#1A1A1A', // 颜色
     lineSize: 1.5,  // 笔记倍数
-    lineMin: 0.5,   // 最小笔画半径
-    lineMax: 4,     // 最大笔画半径
-    pressure: 1,     // 默认压力
-    smoothness: 60,  //顺滑度，用60的距离来计算速度
+    lineMin: 0.2,   // 最小笔画半径
+    lineMax: 3,     // 最大笔画半径
+    radius: 1, //画圆的半径
+    cutArea: { top: 0, right: 0, bottom: 0, left: 0 }, //裁剪区域
+    pressure: 0.9,     // 默认压力
+    smoothness: 30,  //顺滑度，用60的距离来计算速度
     currentPoint: {},
     currentLine: [],  // 当前线条
     firstTouch: true, // 第一次触发
-    radius: 1, //画圆的半径
-    cutArea: { top: 0, right: 0, bottom: 0, left: 0 }, //裁剪区域
     bethelPoint: [],  //保存所有线条 生成的贝塞尔点；
     lastPoint: 0,
     chirography: [], //笔迹
     currentChirography: {}, //当前笔迹
-    linePrack: [] //划线轨迹 , 生成线条的实际点
+    linePrack: [], //划线轨迹 , 生成线条的实际点
+    canvas: null,
   },
 
   /*======所有自定义函数======*/
@@ -35,8 +36,8 @@ Page({
   uploadScaleStart(e) {
     if (e.type != 'touchstart') return false;
     let ctx = this.data.ctx;
-    ctx.setFillStyle(this.data.lineColor);  // 初始线条设置颜色
-    ctx.setGlobalAlpha(this.data.transparent);  // 设置半透明
+    ctx.fillStyle = this.data.lineColor;      // 初始线条设置颜色
+    ctx.globalAlpha = this.data.transparent;  // 设置半透明
     let currentPoint = {
       x: e.touches[0].x,
       y: e.touches[0].y
@@ -131,9 +132,6 @@ Page({
       x: point.x,
       y: point.y
     })
-    // this.setData({
-    //   currentLine
-    // })
     if (currentLine.length > 2) {
       var info = (currentLine[0].time - currentLine[currentLine.length - 1].time) / currentLine.length;
       //$("#info").text(info.toFixed(2));
@@ -159,11 +157,24 @@ Page({
   },
 
   retDraw() {
-    this.data.ctx.clearRect(0, 0, 700, 730)
-    this.data.ctx.draw();
+    var { canvasWidth, canvasHeight } = this.data
+    //清除画布
+    this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    this.setData(
+      {
+        currentPoint: {},
+        currentLine: [],  // 当前线条
+        firstTouch: true, // 第一次触发
+        bethelPoint: [],  //保存所有线条 生成的贝塞尔点；
+        lastPoint: 0,
+        chirography: [], //笔迹
+        currentChirography: {}, //当前笔迹
+        linePrack: [] //划线轨迹 , 生成线条的实际点
+      }
+    );
 
-		//设置canvas背景
-		this.setCanvasBg("#fff");
+    //设置canvas背景
+    this.setCanvasBg("#fff");
   },
 
   //画两点之间的线条；参数为:line，会绘制最近的开始的两个点；
@@ -294,11 +305,11 @@ Page({
     ctx.beginPath();
     ctx.moveTo(point[0].mx, point[0].my);
     if (undefined != color) {
-      ctx.setFillStyle(color);
-      ctx.setStrokeStyle(color);
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
     } else {
-      ctx.setFillStyle(point[0].color);
-      ctx.setStrokeStyle(point[0].color);
+      ctx.fillStyle = point[0].color;
+      ctx.strokeStyle = point[0].color;
     }
     for (let i = 1; i < point.length; i++) {
       ctx.bezierCurveTo(point[i].c1x, point[i].c1y, point[i].c2x, point[i].c2y, point[i].ex, point[i].ey);
@@ -307,7 +318,6 @@ Page({
     if (undefined != is_fill) {
       ctx.fill(); //填充图形 ( 后绘制的图形会覆盖前面的图形, 绘制时注意先后顺序 )
     }
-    ctx.draw(true)
   },
   selectColorEvent(event) {
     console.log(event)
@@ -319,330 +329,144 @@ Page({
     })
   },
 
-	//将Canvas内容转成 临时图片 --> cb 为回调函数 形参 tempImgPath 为 生成的图片临时路径
-	canvasToImg(cb){ //这种写法移动端 出不来
-
-		this.data.ctx.draw(true, () => {
-			wx.canvasToTempFilePath({
-				canvasId: 'handWriting',
-				fileType: 'png',
-				quality: 1, //图片质量
-				success(res) {
-					// console.log(res.tempFilePath, 'canvas生成图片地址');
-
-					wx.showToast({
-						title: '执行了吗？',
-					})
-
-					cb(res.tempFilePath);
-				}
-
-			})
-		});
-
-
-	},
-
-
   //完成
-  subCanvas(){
-    // console.log(121);
-
-
-/*		
-    this.data.ctx.draw( true, ()=>{
-      wx.canvasToTempFilePath({
-        canvasId: 'handWriting',
-        fileType: 'png',
-        quality: 1, //图片质量
-        success(res){
-*/
-
-					
-          // console.log(res.tempFilePath, 'canvas生成图片地址');
-/*
-					wx.showModal({
-						title: '哈哈啊',
-						content: '这是什么',
-					})
-*/
-/*
-					wx.showToast({
-						title: '以保存',
-					})
-*/
-
-
-					
-					//保存到系统相册
-/*					
-					wx.saveImageToPhotosAlbum({
-						filePath: res.tempFilePath,
-						success(res) { 
-
-							console.log(res,'保存res');
-
-							wx.showToast( {
-								title: '已成功保存到相册',
-								duration: 2000
-							} );
-
-						}
-					})
-*/
-
-
-
-/*
-
-        }
-      })
-    } );
-*/
-
-
-
-
+  subCanvas() {
 
   },
 
-	//保存到相册
-	saveCanvasAsImg(){
-		console.log(1212);
+  //保存到相册
+  saveCanvasAsImg() {
+    var that = this
+    wx.canvasToTempFilePath({
+      canvas: that.data.canvas,
+      fileType: 'png',
+      quality: 1, //图片质量
+      success(res) {
+        //打印图片路径
+        console.log(res.tempFilePath, 'canvas生成图片地址');
+        //设置保存的图片
+        that.setData({
+          signImage: res.tempFilePath
+        })
+        wx.saveImageToPhotosAlbum({
+          filePath: res.tempFilePath,
+          success(res) {
+            wx.showToast({
+              title: '已保存到相册',
+              duration: 2000
+            });
+          }, fail: (err) => {
+            console.log(err)
+          }
+        })
+      }
+    })
+  },
 
-/*
-		this.canvasToImg( tempImgPath=>{
-			// console.log(tempImgPath, '临时路径');
+  //预览
+  previewCanvasImg() {
+    wx.canvasToTempFilePath({
+      canvas: this.data.canvas,
+      fileType: 'jpg',
+      quality: 1, //图片质量
+      success(res) {
+        // console.log(res.tempFilePath, 'canvas生成图片地址');
+        wx.previewImage({
+          urls: [res.tempFilePath], //预览图片 数组
+        })
+      }, fail: (err) => {
+        console.log(err)
+      }
+    });
+  },
 
-			wx.saveImageToPhotosAlbum({
-				filePath: tempImgPath,
-				success(res) {
+  //上传
+  uploadCanvasImg() {
+    var that = this
+    wx.canvasToTempFilePath({
+      canvas: that.data.canvas,
+      fileType: 'png',
+      quality: 1, //图片质量
+      success(res) {
+        // console.log(res.tempFilePath, 'canvas生成图片地址');
+        //打印图片路径
+        console.log(res.tempFilePath);
+        //设置保存的图片
+        that.setData({
+          signImage: res.tempFilePath
+        })
+      }
+    })
+  },
 
-					wx.showToast({
-						title: '已保存到相册',
-						duration: 2000
-					});
-
-				}
-			})
-
-		} );
-*/
-
-		wx.canvasToTempFilePath({
-			canvasId: 'handWriting',
-			fileType: 'png',
-			quality: 1, //图片质量
-			success(res) {
-				// console.log(res.tempFilePath, 'canvas生成图片地址');
-				wx.saveImageToPhotosAlbum({
-					filePath: res.tempFilePath,
-					success(res) {
-
-						wx.showToast({
-							title: '已保存到相册',
-							duration: 2000
-						});
-
-					}
-				})
-
-
-			}
-
-		})
-
-
-
-	},
-
-	//预览
-	previewCanvasImg(){
-
-
-
-			wx.canvasToTempFilePath({
-				canvasId: 'handWriting',
-				fileType: 'jpg',
-				quality: 1, //图片质量
-				success(res) {
-					// console.log(res.tempFilePath, 'canvas生成图片地址');
-
-
-					wx.previewImage({
-						urls: [res.tempFilePath], //预览图片 数组
-					})
-
-				}
-
-			})
-
-
-
-
-
-
-
-
-
-
-
-/*	//移动端出不来  ^~^！！
-
-		this.canvasToImg( tempImgPath=>{
-
-			wx.previewImage({
-				urls: [tempImgPath], //预览图片 数组
-			})
-
-
-		} );
-
-*/
-
-
-
-	},
-
-	//上传
-	uploadCanvasImg() {
-		// console.log(999);
-
-		wx.canvasToTempFilePath({
-			canvasId: 'handWriting',
-			fileType: 'png',
-			quality: 1, //图片质量
-			success(res) {
-				// console.log(res.tempFilePath, 'canvas生成图片地址');
-
-				//上传
-				wx.uploadFile({
-					url: 'https://example.weixin.qq.com/upload', // 仅为示例，非真实的接口地址
-					filePath: res.tempFilePath,
-					name: 'file_signature',
-					formData: {
-						user: 'test'
-					},
-					success(res) {
-						const data = res.data
-						// do something
-					}
-				})
-
-			}
-
-		})
-
-
-	},
-
-	//设置canvas背景色  不设置  导出的canvas的背景为透明 
-	//@params：字符串  color
-	setCanvasBg(color){
-
-		console.log(999);
-		/* 将canvas背景设置为 白底，不设置  导出的canvas的背景为透明 */
-		//rect() 参数说明  矩形路径左上角的横坐标，左上角的纵坐标, 矩形路径的宽度, 矩形路径的高度
-		//这里是 canvasHeight - 4 是因为下边盖住边框了，所以手动减了写
-		this.data.ctx.rect(0, 0, this.data.canvasWidth, this.data.canvasHeight - 4);  
-		// ctx.setFillStyle('red')
-		this.data.ctx.setFillStyle( color )
-		this.data.ctx.fill()  //设置填充
-		this.data.ctx.draw()	//开画
-
-
-	},
-
-
-
-
-
+  //设置canvas背景色  不设置  导出的canvas的背景为透明 
+  //@params：字符串  color
+  setCanvasBg(color) {
+    console.log('设置背景与填充色');
+    /* 将canvas背景设置为 白底，不设置  导出的canvas的背景为透明 */
+    //rect() 参数说明  矩形路径左上角的横坐标，左上角的纵坐标, 矩形路径的宽度, 矩形路径的高度
+    //这里是 canvasHeight - 4 是因为下边盖住边框了，所以手动减了写
+    this.data.ctx.rect(0, 0, this.data.canvasWidth, this.data.canvasHeight - 4);
+    this.data.ctx.fillStyle = color;
+    this.data.ctx.fill()  //设置填充
+  },
 
   /*======所有自定义函数=END=====*/
 
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
 
-
-
-
-	/**
-	 * 生命周期函数--监听页面加载
-	 */
-	onLoad: function (options) {
-
-    let canvasName = this.data.canvasName
-    let ctx = wx.createCanvasContext(canvasName)
-    this.setData({
-      ctx: ctx
-    })
-    var query = wx.createSelectorQuery();
-    query.select('.handCenter').boundingClientRect( rect => {
-
-      this.setData({
-        canvasWidth: rect.width,
-        canvasHeight: rect.height
+    // 通过 SelectorQuery 获取 Canvas 节点
+    wx.createSelectorQuery()
+      .select('#handWriting')
+      .fields({
+        node: true,
+        size: true,
       })
+      .exec(this.init.bind(this))
+  },
 
-			/* 将canvas背景设置为 白底，不设置  导出的canvas的背景为透明 */
-			// console.log(this, 'hahah');
-			this.setCanvasBg('#fff');
+  init(res) {
+    console.log(res);
+    const width = res[0].width
+    const height = res[0].height
 
+    const canvas = res[0].node
+    //获得Canvas的上下文
+    let content = canvas.getContext('2d')
+    console.log(content);
 
-    }).exec();
+    const dpr = wx.getSystemInfoSync().pixelRatio
+    canvas.width = width * dpr
+    canvas.height = height * dpr
+    content.scale(dpr, dpr)
 
-  }, 
+    // //设置线的颜色
+    content.fillStyle = '#1aad19'
+    // //设置线的宽度
+    content.lineWidth = 3;
+    // 设置线两端端点样式更加圆润
+    content.lineCap = 'round';
+    // 设置两条线连接处更加圆润
+    content.lineJoin = 'round';
+    // 填充颜色
+    content.strokeStyle = '#1aad19'
 
+    this.setData({
+      canvas: canvas,
+      ctx: content,
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      lineColor: '#1A1A1A',
+    })
+    //设置canvas背景
+    this.setCanvasBg("#fff");
+  },
 
-
-
-
-
-
-	/**
-	 * 生命周期函数--监听页面初次渲染完成
-	 */
-	onReady: function () {
-
-	},
-
-	/**
-	 * 生命周期函数--监听页面显示
-	 */
-	onShow: function () {
-
-	},
-
-	/**
-	 * 生命周期函数--监听页面隐藏
-	 */
-	onHide: function () {
-
-	},
-
-	/**
-	 * 生命周期函数--监听页面卸载
-	 */
-	onUnload: function () {
-
-	},
-
-	/**
-	 * 页面相关事件处理函数--监听用户下拉动作
-	 */
-	onPullDownRefresh: function () {
-
-	},
-
-	/**
-	 * 页面上拉触底事件的处理函数
-	 */
-	onReachBottom: function () {
-
-	},
-
-	/**
-	 * 用户点击右上角分享
-	 */
-	onShareAppMessage: function () {
-
-	}
+  // 画布的触摸取消响应
+  cancel(e) {
+    console.log("触摸取消" + e);
+  },
 })

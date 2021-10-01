@@ -7,7 +7,7 @@ page {
 
 .wrapper {
   width: 100%;
-  height: 95vh;
+  height: auto;
   margin: 30rpx 0;
   overflow: hidden;
   display: flex;
@@ -101,7 +101,7 @@ page {
 }
 
 .uploadBtn {
-	position: absolute;
+  position: absolute;
   top: 625rpx;
   left: 0rpx;
   transform: rotate(90deg);
@@ -122,19 +122,22 @@ page {
   top: 30rpx;
   left: 25rpx;
 }
+
 .black-select.color_select {
   width: 90rpx;
   height: 90rpx;
   top: 30rpx;
   left: 10rpx;
 }
+
 .red-select {
   width: 60rpx;
   height: 60rpx;
   position: absolute;
-  top:140rpx;
-  left:25rpx;
+  top: 140rpx;
+  left: 25rpx;
 }
+
 .red-select.color_select {
   width: 90rpx;
   height: 90rpx;
