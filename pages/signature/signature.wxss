@@ -108,6 +108,14 @@ page {
   color: #666;
 }
 
+.undoBtn {
+  position: absolute;
+  top: 750rpx;
+  left: 0rpx;
+  transform: rotate(90deg);
+  color: #666;
+}
+
 
 /*Peach - 新增 - 保存*/
 

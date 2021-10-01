@@ -51,7 +51,7 @@ Page({
     })
     this.setData({
       currentPoint,
-      // currentLine
+      currentLine
     })
     if (this.data.firstTouch) {
       this.setData({
@@ -112,6 +112,7 @@ Page({
     // this.setData({
     //   currentLine
     // })
+    // console.log(currentLine);
     this.pointToLine(currentLine);
   },
   // 笔迹结束
@@ -132,10 +133,9 @@ Page({
       x: point.x,
       y: point.y
     })
-    if (currentLine.length > 2) {
-      var info = (currentLine[0].time - currentLine[currentLine.length - 1].time) / currentLine.length;
-      //$("#info").text(info.toFixed(2));
-    }
+    // if (currentLine.length > 2) {
+    //   var info = (currentLine[0].time - currentLine[currentLine.length - 1].time) / currentLine.length;
+    // }
     //一笔结束，保存笔迹的坐标点，清空，当前笔迹
     //增加判断是否在手写区域；
     this.pointToLine(currentLine);
@@ -150,31 +150,11 @@ Page({
     })
     var linePrack = this.data.linePrack
     linePrack.unshift(this.data.currentLine);
+
     this.setData({
       linePrack,
       currentLine: []
     })
-  },
-
-  retDraw() {
-    var { canvasWidth, canvasHeight } = this.data
-    //清除画布
-    this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    this.setData(
-      {
-        currentPoint: {},
-        currentLine: [],  // 当前线条
-        firstTouch: true, // 第一次触发
-        bethelPoint: [],  //保存所有线条 生成的贝塞尔点；
-        lastPoint: 0,
-        chirography: [], //笔迹
-        currentChirography: {}, //当前笔迹
-        linePrack: [] //划线轨迹 , 生成线条的实际点
-      }
-    );
-
-    //设置canvas背景
-    this.setCanvasBg("#fff");
   },
 
   //画两点之间的线条；参数为:line，会绘制最近的开始的两个点；
@@ -329,9 +309,57 @@ Page({
     })
   },
 
+  // 重写
+  retDraw() {
+    var { canvasWidth, canvasHeight } = this.data
+    //清除画布
+    this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    this.setData(
+      {
+        currentPoint: {},
+        currentLine: [],  // 当前线条
+        firstTouch: true, // 第一次触发
+        bethelPoint: [],  //保存所有线条 生成的贝塞尔点；
+        lastPoint: 0,
+        chirography: [], //笔迹
+        currentChirography: {}, //当前笔迹
+        linePrack: [] //划线轨迹 , 生成线条的实际点
+      }
+    );
+    //设置canvas背景
+    this.setCanvasBg("#fff");
+  },
+
+  undoCanvasLine() {
+    let linePrack = this.data.linePrack;
+    var chirography = this.data.chirography
+    linePrack.shift();
+    chirography.shift();
+    var { canvasWidth, canvasHeight } = this.data
+    this.data.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    linePrack.forEach((currentLines, index) => {
+      // console.log(currentLines);
+      let currentChirography = chirography[index];
+      this.setData({
+        lineSize: currentChirography.lineSize,
+        lineColor: currentChirography.lineColor,
+      })
+      for (let index = 0; index < currentLines.length; index++) {
+        let currentLine = currentLines.slice(currentLines.length - index - 1);
+        //一笔结束，保存笔迹的坐标点，清空，当前笔迹
+        // console.log(currentLine);
+        //增加判断是否在手写区域；
+        this.pointToLine(currentLine);
+      }
+    });
+    this.setData({
+      currentLine: []
+    })
+  },
+
   //完成
   subCanvas() {
-
+    console.log(this.data)
   },
 
   //保存到相册

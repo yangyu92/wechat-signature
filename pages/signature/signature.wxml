@@ -15,6 +15,7 @@
     <button catchtap="saveCanvasAsImg" class="saveBtn">保存</button>
     <button catchtap="previewCanvasImg" class="previewBtn">预览</button>
     <button catchtap="uploadCanvasImg" class="uploadBtn">上传</button>
+    <button catchtap="undoCanvasLine" class="undoBtn">撤销</button>
     <button catchtap="subCanvas" class="subBtn">完成</button>
   </view>
   <view class="handCenter">
