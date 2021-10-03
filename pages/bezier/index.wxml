@@ -1,0 +1,22 @@
+<!--pages/signature/signature.wxml-->
+<!-- <text>pages/signature/signature.wxml</text> -->
+<view class="wrapper">
+  <view class="handBtn">
+    <view class="black-select" style="background-color: {{penColor}};" catchtap="handleChangeColor"></view>
+    <button catchtap="handleClear" class="delBtn">重写</button>
+    <!-- <button catchtap="subCanvas" class="subBtn">完成</button> -->
+    <button catchtap="handleSave" class="saveBtn">保存</button>
+    <button catchtap="previewCanvasImg" class="previewBtn">预览</button>
+    <!-- <button catchtap="uploadCanvasImg" class="uploadBtn">上传</button> -->
+    <button catchtap="handleCancel" class="undoBtn">撤销</button>
+    <button catchtap="saveCanvasAsImg" suffix="png" class="subBtn">完成</button>
+  </view>
+  <view class="handCenter">
+    <canvas type="2d" id="canvas" class="handWriting" disable-scroll="true" bindtouchstart="handleTouchStart"
+      bindtouchmove="handleTouchMove" bindtouchend="handleTouchEnd" bindtap="mouseDown">
+    </canvas>
+  </view>
+  <view class="handRight">
+    <view class="handTitle">手写板</view>
+  </view>
+</view>

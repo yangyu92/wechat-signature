@@ -23,6 +23,12 @@
           "pathName": "pages/signature/signature",
           "query": "",
           "scene": null
+        },
+        {
+          "name": "pages/bezier/index",
+          "pathName": "pages/bezier/index",
+          "query": "",
+          "scene": null
         }
       ]
     }

@@ -2,6 +2,7 @@
   "pages": [
     "pages/signature/signature",
     "pages/index/index",
+    "pages/bezier/index",
     "pages/logs/logs"
   ],
   "window": {

@@ -18,7 +18,7 @@ Page({
     lineSize: 1.5,  // 笔记倍数
     lineMin: 0.2,   // 最小笔画半径
     lineMax: 3,     // 最大笔画半径
-    radius: 1, //画圆的半径
+    radius: 3, //画圆的半径
     cutArea: { top: 0, right: 0, bottom: 0, left: 0 }, //裁剪区域
     pressure: 0.9,     // 默认压力
     smoothness: 30,  //顺滑度，用60的距离来计算速度
